@@ -15,11 +15,12 @@ fi
 
 # Restore artifacts from the previous build (if they exist).
 #
-if [ "$(ls /tmp/artifacts/ 2>/dev/null)" ]; then
-  echo "---> Restoring build artifacts..."
-	ls -l /tmp/artifacts
-  mv /tmp/artifacts/. ./
-fi
+function restore_saved_artifacts() {
+  if [ "$(ls -A /opt/s2i/destination/artifacts/ 2>/dev/null)" ]; then
+    echo -n "Restoring saved artifacts from prior build..."
+    mv /opt/s2i/destination/artifacts/* /opt/s2i/destination/artifacts/.[!.]* $HOME/.
+  fi
+}
 
 echo "---> Installing application source..."
 cp -Rf /tmp/src/. ./
@@ -27,6 +28,8 @@ cp -Rf /tmp/src/. ./
 echo "---> Building application from source..."
 
 if [ -f "build.gradle" ]; then
+
+  restore_saved_artifacts
 
   pushd . &> /dev/null
   JAVA_HOME=/etc/alternatives/java_sdk_1.8.0
